@@ -17,16 +17,12 @@ project(CPP_BOILERPLATE VERSION 1.2.3.4 LANGUAGES CXX)
 option(ENABLE_WARNINGS_SETTINGS "Allow target_set_warnings to add flags and defines.
                                  Set this to OFF if you want to provide your own warning parameters." ON)
 option(ENABLE_LTO "Enable link time optimization" ON)
-option(ENABLE_DOCTESTS "Include tests in the library. Setting this to OFF will remove all doctest related code.
-                        Tests in tests/*.cpp will still be enabled." ON)
+option(ENABLE_DOCTESTS "Include tests in the library." OFF)
 
 # Include stuff. No change needed.
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 include(ConfigSafeGuards)
 include(Colors)
-include(CTest)
-include(Doctest)
-include(Documentation)
 include(LTO)
 include(Misc)
 include(Warnings)
@@ -40,9 +36,7 @@ find_lto(CXX)
 set(SOURCES          # All .cpp files in src/
     src/example.cpp
 )
-set(TESTFILES        # All .cpp files in tests/
-    tests/main.cpp
-)
+
 set(LIBRARY_NAME engine)  # Default name for the library built from src/*.cpp (change if you wish)
 
 # --------------------------------------------------------------------------------
@@ -60,7 +54,6 @@ target_include_directories(
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/google/benchmark-1.8.2)
 
-# There's also (probably) doctests within the library, so we need to see this as well.
 target_link_libraries(
     ${LIBRARY_NAME} PUBLIC
     benchmark
@@ -94,6 +87,3 @@ set_target_properties(
       RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin
       RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin
 )
-
-# Set up tests (see tests/CMakeLists.txt).
-add_subdirectory(tests)

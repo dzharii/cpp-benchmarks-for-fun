@@ -1,35 +1,62 @@
-// Executables must have the following defined if the library contains
-// doctest definitions. For builds with this disabled, e.g. code shipped to
-// users, this can be left out.
-#ifdef ENABLE_DOCTEST_IN_LIBRARY
-#define DOCTEST_CONFIG_IMPLEMENT
-#include "doctest/doctest.h"
-#endif
+// Microbenchmarks for string comparison using Google benchmark
+#include <cstdlib>
+#include <cstring>
+#include <memory>
 
-#include <iostream>
-#include <stdlib.h>
+#include "benchmark/benchmark.h"
 
-#include "exampleConfig.h"
-#include "example.h"
+using std::unique_ptr;
 
-/*
- * Simple main program that demontrates how access
- * CMake definitions (here the version number) from source code.
- */
-int main() {
-  std::cout << "C++ Boiler Plate v"
-            << PROJECT_VERSION_MAJOR
-            << "."
-            << PROJECT_VERSION_MINOR
-            << "."
-            << PROJECT_VERSION_PATCH
-            << "."
-            << PROJECT_VERSION_TWEAK
-            << std::endl;
-  std::system("cat ../LICENSE");
+extern bool compare_int(const char* s1, const char* s2);
 
-  // Bring in the dummy class from the example source,
-  // just to show that it is accessible from main.cpp.
-  Dummy d = Dummy();
-  return d.doSomething() ? 0 : -1;
+extern bool compare_uint(const char* s1, const char* s2);
+
+extern bool compare_uint_l(const char* s1, const char* s2, unsigned int l);
+
+void BM_loop_int(benchmark::State& state) {
+    const unsigned int N = state.range(0);
+    unique_ptr<char[]> s(new char[2 * N]);
+    ::memset(s.get(), 'a', 2 * N * sizeof(char));
+    s[2 * N - 1] = 0;
+    const char* s1 = s.get();
+    const char* s2 = s1 + N;
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(compare_int(s1, s2));
+    }
+    state.SetItemsProcessed(N * state.iterations());
 }
+
+void BM_loop_uint(benchmark::State& state) {
+    const unsigned int N = state.range(0);
+    unique_ptr<char[]> s(new char[2 * N]);
+    ::memset(s.get(), 'a', 2 * N * sizeof(char));
+    s[2 * N - 1] = 0;
+    const char* s1 = s.get();
+    const char* s2 = s1 + N;
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(compare_uint(s1, s2));
+    }
+    state.SetItemsProcessed(N * state.iterations());
+}
+
+void BM_loop_uint_l(benchmark::State& state) {
+    const unsigned int N = state.range(0);
+    unique_ptr<char[]> s(new char[2 * N]);
+    ::memset(s.get(), 'a', 2 * N * sizeof(char));
+    s[2 * N - 1] = 0;
+    const char* s1 = s.get();
+    const char* s2 = s1 + N;
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(compare_uint_l(s1, s2, 2 * N));
+    }
+    state.SetItemsProcessed(N * state.iterations());
+}
+
+#define ARGS \
+    ->RangeMultiplier(2)->Range(1 << 10, 1 << 20)
+
+BENCHMARK(BM_loop_int) ARGS;
+BENCHMARK(BM_loop_uint) ARGS;
+BENCHMARK(BM_loop_uint_l) ARGS;
+
+BENCHMARK_MAIN();
