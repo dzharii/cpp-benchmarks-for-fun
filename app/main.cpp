@@ -1,4 +1,8 @@
 // Microbenchmarks for string comparison using Google benchmark
+// Most of the code from:
+// https://github.com/PacktPublishing/The-Art-of-Writing-Efficient-Programs
+// Fedor G. Pikus
+//
 #include <cstdlib>
 #include <cstring>
 #include <memory>
